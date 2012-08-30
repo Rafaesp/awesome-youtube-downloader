@@ -1,12 +1,10 @@
 package es.rafaespillaque.ayd;
 
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.util.Enumeration;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,20 +20,25 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 public class MainFrame extends JFrame {
 
+	private static final long serialVersionUID = 6571927323567562621L;
+
 	private static final int WIDTH = 960;
 
-	private JPanel content;
 	private JTextField textField;
+
+	private JLabel lblTitle;
+	private JLabel lblAlbum;
+	private JLabel lblArtist;
+	private JLabel lblYtTitle;
+	private JLabel lblYtDescription;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -170,34 +173,73 @@ public class MainFrame extends JFrame {
 		// resultsPanel.add(row);
 		// }
 
-
-		String[] columnNames = { "Nombre", "Disco", "Artista", "YouTube",
-				"Descargar" };
-
-		Object[][] data = {
-				{ "Antes de que cuente 10", "Antes de que cuente 10",
-						"Fito y Fitipaldis", "Antes de que cuente 10 asasdasd",
-						new Boolean(false) },
-				{ "Antes de que cuente 10", "Antes de que cuente 10",
-						"Fito y Fitipaldis", "Antes de que cuente 10 asasdasd",
-						new Boolean(false) },
-				{ "Antes de que cuente 10", "Antes de que cuente 10",
-						"Fito y Fitipaldis", "Antes de que cuente 10 asasdasd",
-						new Boolean(false) },
-				{ "Antes de que cuente 10", "Antes de que cuente 10",
-						"Fito y Fitipaldis", "Antes de que cuente 10 asasdasd",
-						new Boolean(false) },
-				{ "Antes de que cuente 10", "Antes de que cuente 10",
-						"Fito y Fitipaldis", "Antes de que cuente 10 asasdasd",
-						new Boolean(false) }, };
+		SongTableModel songTableModel = new SongTableModel(
+				new String[]{ "Nombre", "Artista", "YouTube", "Descargar" });
+		JTable table = new JTable(songTableModel);
 		
-		JTable table = new JTable(data, columnNames);
+		
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane.setBounds(300, 0, 660, 745);
+		scrollPane.setBounds(300, 0, 660, 450);
 		table.setFillsViewportHeight(true);
 		
 		getContentPane().add(scrollPane);
+		
+		JLabel lblDetalle1 = new JLabel("Detalle");
+		lblDetalle1.setFont(new Font("Dialog", Font.BOLD, 18));
+		lblDetalle1.setBounds(604, 462, 83, 25);
+		getContentPane().add(lblDetalle1);
+		
+		JLabel lblDetalle2 = new JLabel("Título:");
+		lblDetalle2.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblDetalle2.setBounds(387, 517, 70, 15);
+		getContentPane().add(lblDetalle2);
+		
+		JLabel lblDetalle3 = new JLabel("Disco:");
+		lblDetalle3.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblDetalle3.setBounds(387, 544, 70, 15);
+		getContentPane().add(lblDetalle3);
+		
+		JLabel lblDetalle4 = new JLabel("Artista:");
+		lblDetalle4.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblDetalle4.setBounds(387, 571, 70, 15);
+		getContentPane().add(lblDetalle4);
+		
+		JLabel lblDetalle5 = new JLabel("Título:");
+		lblDetalle5.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblDetalle5.setBounds(387, 626, 70, 15);
+		getContentPane().add(lblDetalle5);
+		
+		JLabel lblDetalle6 = new JLabel("Descripción:");
+		lblDetalle6.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblDetalle6.setBounds(387, 653, 103, 15);
+		getContentPane().add(lblDetalle6);
+		
+		JLabel lblDetalle7 = new JLabel("Ir a Youtube");
+		lblDetalle7.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblDetalle7.setBounds(594, 487, 93, 15);
+		getContentPane().add(lblDetalle7);
+		
+		lblTitle = new JLabel("");
+		lblTitle.setBounds(503, 517, 431, 15);
+		getContentPane().add(lblTitle);
+		
+		lblAlbum = new JLabel("");
+		lblAlbum.setBounds(503, 544, 431, 15);
+		getContentPane().add(lblAlbum);
+		
+		lblArtist = new JLabel("");
+		lblArtist.setBounds(503, 571, 431, 15);
+		getContentPane().add(lblArtist);
+		
+		lblYtTitle = new JLabel("");
+		lblYtTitle.setBounds(503, 626, 431, 15);
+		getContentPane().add(lblYtTitle);
+		
+		lblYtDescription = new JLabel("");
+		lblYtDescription.setBounds(502, 653, 432, 54);
+		getContentPane().add(lblYtDescription);
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
