@@ -4,7 +4,8 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.util.Enumeration;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,9 +23,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
-import javax.swing.event.TableColumnModelListener;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 public class MainFrame extends JFrame {
 
@@ -32,13 +30,17 @@ public class MainFrame extends JFrame {
 
 	private static final int WIDTH = 960;
 
-	private JTextField textField;
-
+	private JTextField txtSearch;
 	private JLabel lblTitle;
 	private JLabel lblAlbum;
 	private JLabel lblArtist;
 	private JLabel lblYtTitle;
 	private JLabel lblYtDescription;
+	private JButton btnBuscar;
+	
+	private ITunesSearcher searcher;
+
+	private SongTableModel songTableModel;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -55,7 +57,8 @@ public class MainFrame extends JFrame {
 
 	public MainFrame() {
 		setResizable(false);
-
+		searcher = new ITunesSearcher();
+		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
@@ -65,7 +68,6 @@ public class MainFrame extends JFrame {
 				.getLocalGraphicsEnvironment();
 		Rectangle screen = ge.getMaximumWindowBounds();
 
-		System.out.print(screen.height + "");
 		setSize(960, screen.height);
 		setLocation(screen.width / 2 - WIDTH / 2, 0);
 		getContentPane().setLayout(null);
@@ -75,10 +77,10 @@ public class MainFrame extends JFrame {
 		getContentPane().add(panel);
 		panel.setLayout(null);
 
-		textField = new JTextField();
-		textField.setBounds(12, 24, 277, 34);
-		panel.add(textField);
-		textField.setColumns(10);
+		txtSearch = new JTextField();
+		txtSearch.setBounds(12, 24, 277, 34);
+		panel.add(txtSearch);
+		txtSearch.setColumns(10);
 
 		JLabel lblBuscar = new JLabel("Buscar");
 		lblBuscar.setBounds(12, 0, 87, 24);
@@ -100,8 +102,15 @@ public class MainFrame extends JFrame {
 		rdbtnTodo.setBounds(8, 70, 149, 23);
 		panel.add(rdbtnTodo);
 
-		JButton btnBuscar = new JButton("Buscar!");
+		btnBuscar = new JButton("Buscar!");
 		btnBuscar.setBounds(93, 183, 117, 25);
+		btnBuscar.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				searcher.setTerm(txtSearch.getText());
+				songTableModel.setSongs(searcher.search());
+			}
+		});
 		panel.add(btnBuscar);
 
 		JSeparator separator = new JSeparator();
@@ -173,10 +182,10 @@ public class MainFrame extends JFrame {
 		// resultsPanel.add(row);
 		// }
 
-		SongTableModel songTableModel = new SongTableModel(
+		songTableModel = new SongTableModel(
 				new String[]{ "Nombre", "Artista", "YouTube", "Descargar" });
-		JTable table = new JTable(songTableModel);
 		
+		JTable table = new JTable(songTableModel);
 		
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		

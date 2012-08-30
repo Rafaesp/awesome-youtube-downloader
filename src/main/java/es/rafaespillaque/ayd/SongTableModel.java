@@ -17,6 +17,7 @@ public class SongTableModel extends AbstractTableModel {
 	public SongTableModel(String[] columns){
 		columnNames = columns;
 		songs = new LinkedList<Song>();
+		fireTableDataChanged();
 	}
 	
 	public List<Song> getSongs() {
@@ -25,6 +26,7 @@ public class SongTableModel extends AbstractTableModel {
 
 	public void setSongs(List<Song> songs) {
 		this.songs = songs;
+		fireTableDataChanged();
 	}
 
 	public int getColumnCount() {
@@ -36,17 +38,17 @@ public class SongTableModel extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int row, int column) {
-		switch (row) {
-		case 0:
-			return songs.get(column).getTitle();
-		case 1:
-			return songs.get(column).getArtist();
-		case 2:
-			return songs.get(column).getYtTitle();
-		case 3:
-			return songs.get(column).getUrl();
-		default:
-			return null;
+		switch (column) {
+			case 0:
+				return songs.get(row).getTitle();
+			case 1:
+				return songs.get(row).getArtist();
+			case 2:
+				return songs.get(row).getYtTitle();
+			case 3:
+				return songs.get(row).getUrl();
+			default:
+				return null;
 		}
 	}
 	
