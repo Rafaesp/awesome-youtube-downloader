@@ -6,9 +6,11 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -41,15 +43,17 @@ public class MainFrame extends JFrame {
 	private JLabel lblArtist;
 	private JLabel lblYtTitle;
 	private JLabel lblYtDescription;
-	private JButton btnBuscar;
+	private JButton btnSearch;
+	private JTable table;
+	private ButtonGroup rdbtnSearchMode;
+	private JLabel lblSelectedDownloadPath;
 	
 	private ITunesSearcher searcher;
-
 	private SongTableModel songTableModel;
+	private File downloadPath;
+	
 
-	private JTable table;
 
-	private ButtonGroup rdbtnSearchMode;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -117,9 +121,9 @@ public class MainFrame extends JFrame {
 		rdbtnSearchMode.add(rdbtnAlbums);
 		rdbtnSearchMode.add(rdbtnArtists);
 
-		btnBuscar = new JButton("Buscar!");
-		btnBuscar.setBounds(93, 183, 117, 25);
-		btnBuscar.addActionListener(new ActionListener() {
+		btnSearch = new JButton("Buscar!");
+		btnSearch.setBounds(93, 183, 117, 25);
+		btnSearch.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
 				searcher.setTerm(txtSearch.getText());
@@ -130,7 +134,7 @@ public class MainFrame extends JFrame {
 				songTableModel.setSongs(searcher.search());
 			}
 		});
-		panel.add(btnBuscar);
+		panel.add(btnSearch);
 
 		JSeparator separator = new JSeparator();
 		separator.setBounds(8, 220, 289, 2);
@@ -139,9 +143,15 @@ public class MainFrame extends JFrame {
 		JLabel lblRutaDeDescarga = new JLabel("Ruta de descarga");
 		lblRutaDeDescarga.setBounds(12, 234, 277, 24);
 		panel.add(lblRutaDeDescarga);
+		
+		downloadPath = new File("user.home");
+		
+		lblSelectedDownloadPath = new JLabel(downloadPath.getAbsolutePath());
+		lblSelectedDownloadPath.setBounds(12, 262, 277, 15);
+		panel.add(lblSelectedDownloadPath);
 
-		JButton btnCambiarRuta = new JButton("Cambiar ruta");
-		btnCambiarRuta.setBounds(82, 285, 138, 25);
+		JButton btnChangePath = new JButton("Cambiar ruta");
+		btnChangePath.setBounds(82, 285, 138, 25);
 		// TODO: Asi ase abren links
 		// btnCambiarRuta.addActionListener(new ActionListener() {
 		//
@@ -158,12 +168,21 @@ public class MainFrame extends JFrame {
 		//
 		// }
 		// });
-		panel.add(btnCambiarRuta);
-
-		JLabel lblCasdasdasdasdasd = new JLabel("c:/asdasd/asdasd/asd");
-		lblCasdasdasdasdasd.setBounds(12, 262, 277, 15);
-		panel.add(lblCasdasdasdasdasd);
-
+		btnChangePath.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(downloadPath);
+				fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				int returnVal = fc.showOpenDialog(MainFrame.this);
+				if(returnVal == JFileChooser.APPROVE_OPTION){
+					downloadPath = fc.getSelectedFile();
+					lblSelectedDownloadPath.setText(downloadPath.getAbsolutePath());
+				}
+			}
+		});
+		panel.add(btnChangePath);
+		
 		JSeparator separator_1 = new JSeparator();
 		separator_1.setBounds(8, 337, 289, 2);
 		panel.add(separator_1);
