@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -23,6 +24,10 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import es.rafaespillaque.ayd.model.Song;
 
 public class MainFrame extends JFrame {
 
@@ -42,12 +47,17 @@ public class MainFrame extends JFrame {
 
 	private SongTableModel songTableModel;
 
+	private JTable table;
+
+	private ButtonGroup rdbtnSearchMode;
+
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					MainFrame frame = new MainFrame();
 					frame.setVisible(true);
+//					YouTubeSearcher youTubeSearcher = new YouTubeSearcher();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -86,21 +96,26 @@ public class MainFrame extends JFrame {
 		lblBuscar.setBounds(12, 0, 87, 24);
 		panel.add(lblBuscar);
 
-		JRadioButton rdbtnNewRadioButton = new JRadioButton("Canciones");
-		rdbtnNewRadioButton.setBounds(8, 97, 149, 23);
-		panel.add(rdbtnNewRadioButton);
+		JRadioButton rdbtnSongs = new JRadioButton("Canciones");
+		rdbtnSongs.setBounds(8, 97, 149, 23);
+		rdbtnSongs.setActionCommand(ITunesSearcher.MODE_SONG+"");
+		rdbtnSongs.setSelected(true);
+		panel.add(rdbtnSongs);
 
-		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("Discos");
-		rdbtnNewRadioButton_1.setBounds(8, 124, 149, 23);
-		panel.add(rdbtnNewRadioButton_1);
+		JRadioButton rdbtnAlbums = new JRadioButton("Disco");
+		rdbtnAlbums.setBounds(8, 124, 149, 23);
+		rdbtnAlbums.setActionCommand(ITunesSearcher.MODE_ALBUM+"");
+		panel.add(rdbtnAlbums);
 
-		JRadioButton rdbtnNewRadioButton_2 = new JRadioButton("Artistas");
-		rdbtnNewRadioButton_2.setBounds(8, 152, 149, 23);
-		panel.add(rdbtnNewRadioButton_2);
+		JRadioButton rdbtnArtists = new JRadioButton("Artista");
+		rdbtnArtists.setBounds(8, 152, 149, 23);
+		rdbtnArtists.setActionCommand(ITunesSearcher.MODE_ARTIST+"");
+		panel.add(rdbtnArtists);
 
-		JRadioButton rdbtnTodo = new JRadioButton("Todo");
-		rdbtnTodo.setBounds(8, 70, 149, 23);
-		panel.add(rdbtnTodo);
+		rdbtnSearchMode = new ButtonGroup();
+		rdbtnSearchMode.add(rdbtnSongs);
+		rdbtnSearchMode.add(rdbtnAlbums);
+		rdbtnSearchMode.add(rdbtnArtists);
 
 		btnBuscar = new JButton("Buscar!");
 		btnBuscar.setBounds(93, 183, 117, 25);
@@ -108,6 +123,10 @@ public class MainFrame extends JFrame {
 			
 			public void actionPerformed(ActionEvent e) {
 				searcher.setTerm(txtSearch.getText());
+				
+				Integer mode = new Integer (rdbtnSearchMode.getSelection().getActionCommand());
+				searcher.setType(mode);
+				
 				songTableModel.setSongs(searcher.search());
 			}
 		});
@@ -165,29 +184,26 @@ public class MainFrame extends JFrame {
 		lblCancionActual.setBounds(12, 351, 277, 23);
 		panel.add(lblCancionActual);
 
-		// JPanel resultsPanel = new JPanel();
-		//
-		// JPanel outer = new JPanel();
-		// outer.add( resultsPanel );
-		//
-		// JScrollPane scrollPane = new JScrollPane(outer);
-		// scrollPane.getVerticalScrollBar().setUnitIncrement(40);
-		// resultsPanel.setLayout(new GridLayout(50, 1, 0, 0));
-		//
-		// scrollPane.setBounds(300, 0, 660, 745);
-		// getContentPane().add(scrollPane);
-		//
-		// for(int i = 0; i<50;++i){
-		// ResultRow row = new ResultRow();
-		// resultsPanel.add(row);
-		// }
-
 		songTableModel = new SongTableModel(
 				new String[]{ "Nombre", "Artista", "YouTube", "Descargar" });
 		
-		JTable table = new JTable(songTableModel);
-		
+		table = new JTable(songTableModel);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		ListSelectionModel selectionModel = table.getSelectionModel();
+		selectionModel.addListSelectionListener(new ListSelectionListener() {
+			
+			public void valueChanged(ListSelectionEvent event) {
+				if(!event.getValueIsAdjusting()){
+					int selected = table.getSelectedRow();
+					if(selected != -1){
+						Song song = songTableModel.getSongs().get(selected);
+						lblTitle.setText(song.getTitle());
+						lblArtist.setText(song.getArtist());
+						lblAlbum.setText(song.getAlbum());
+					}
+				}
+			}
+		});
 		
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBounds(300, 0, 660, 450);
