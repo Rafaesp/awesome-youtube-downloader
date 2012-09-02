@@ -1,12 +1,23 @@
 package es.rafaespillaque.ayd;
 
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -28,8 +39,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableColumnModel;
 
 import es.rafaespillaque.ayd.model.Song;
+import javax.swing.SwingConstants;
+import java.awt.Color;
 
 public class MainFrame extends JFrame {
 
@@ -47,11 +61,14 @@ public class MainFrame extends JFrame {
 	private JTable table;
 	private ButtonGroup rdbtnSearchMode;
 	private JLabel lblSelectedDownloadPath;
+	private JLabel lblGoYoutube;
+	private JButton btnDownload;
 	
-	private ITunesSearcher searcher;
+	private ITunesSearcher itSearcher;
+	private YouTubeSearcher ytSearcher;
 	private SongTableModel songTableModel;
 	private File downloadPath;
-	
+	private boolean goYoutubeEnabled = false;
 
 
 
@@ -61,7 +78,6 @@ public class MainFrame extends JFrame {
 				try {
 					MainFrame frame = new MainFrame();
 					frame.setVisible(true);
-//					YouTubeSearcher youTubeSearcher = new YouTubeSearcher();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -71,7 +87,8 @@ public class MainFrame extends JFrame {
 
 	public MainFrame() {
 		setResizable(false);
-		searcher = new ITunesSearcher();
+		itSearcher = new ITunesSearcher();
+		ytSearcher = new YouTubeSearcher();
 		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -86,6 +103,17 @@ public class MainFrame extends JFrame {
 		setLocation(screen.width / 2 - WIDTH / 2, 0);
 		getContentPane().setLayout(null);
 
+		buildLeftPanel();
+
+		buildScrollPane();
+		
+		buildDetailsArea();
+
+		buildMenuBar();
+
+	}
+
+	private void buildLeftPanel() {
 		JPanel panel = new JPanel();
 		panel.setBounds(0, 0, 300, 745);
 		getContentPane().add(panel);
@@ -123,17 +151,7 @@ public class MainFrame extends JFrame {
 
 		btnSearch = new JButton("Buscar!");
 		btnSearch.setBounds(93, 183, 117, 25);
-		btnSearch.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(ActionEvent e) {
-				searcher.setTerm(txtSearch.getText());
-				
-				Integer mode = new Integer (rdbtnSearchMode.getSelection().getActionCommand());
-				searcher.setType(mode);
-				
-				songTableModel.setSongs(searcher.search());
-			}
-		});
+		createSearchListener();
 		panel.add(btnSearch);
 
 		JSeparator separator = new JSeparator();
@@ -147,40 +165,12 @@ public class MainFrame extends JFrame {
 		downloadPath = new File("user.home");
 		
 		lblSelectedDownloadPath = new JLabel(downloadPath.getAbsolutePath());
-		lblSelectedDownloadPath.setBounds(12, 262, 277, 15);
+		lblSelectedDownloadPath.setBounds(12, 262, 277, 25);
 		panel.add(lblSelectedDownloadPath);
 
 		JButton btnChangePath = new JButton("Cambiar ruta");
-		btnChangePath.setBounds(82, 285, 138, 25);
-		// TODO: Asi ase abren links
-		// btnCambiarRuta.addActionListener(new ActionListener() {
-		//
-		// public void actionPerformed(ActionEvent arg0) {
-		// try {
-		// Desktop.getDesktop().browse(new URI("http://www.google.es"));
-		// } catch (IOException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// } catch (URISyntaxException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-		//
-		// }
-		// });
-		btnChangePath.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser fc = new JFileChooser();
-				fc.setCurrentDirectory(downloadPath);
-				fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = fc.showOpenDialog(MainFrame.this);
-				if(returnVal == JFileChooser.APPROVE_OPTION){
-					downloadPath = fc.getSelectedFile();
-					lblSelectedDownloadPath.setText(downloadPath.getAbsolutePath());
-				}
-			}
-		});
+		btnChangePath.setBounds(79, 287, 138, 25);
+		createChangePathListener(btnChangePath);
 		panel.add(btnChangePath);
 		
 		JSeparator separator_1 = new JSeparator();
@@ -202,34 +192,32 @@ public class MainFrame extends JFrame {
 		JLabel lblCancionActual = new JLabel("Canción actual");
 		lblCancionActual.setBounds(12, 351, 277, 23);
 		panel.add(lblCancionActual);
-
+	}
+	
+	private void buildScrollPane() {
 		songTableModel = new SongTableModel(
-				new String[]{ "Nombre", "Artista", "YouTube", "Descargar" });
+				new String[]{ "Nombre", "Artista", "YouTube"});
 		
 		table = new JTable(songTableModel);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		TableColumnModel columnModel = table.getColumnModel();
+		
+		columnModel.getColumn(0).setPreferredWidth(267);
+		columnModel.getColumn(1).setPreferredWidth(125);
+		columnModel.getColumn(2).setPreferredWidth(267);
+		
+		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		ListSelectionModel selectionModel = table.getSelectionModel();
-		selectionModel.addListSelectionListener(new ListSelectionListener() {
-			
-			public void valueChanged(ListSelectionEvent event) {
-				if(!event.getValueIsAdjusting()){
-					int selected = table.getSelectedRow();
-					if(selected != -1){
-						Song song = songTableModel.getSongs().get(selected);
-						lblTitle.setText(song.getTitle());
-						lblArtist.setText(song.getArtist());
-						lblAlbum.setText(song.getAlbum());
-					}
-				}
-			}
-		});
+		createTableSelectionListener(selectionModel);
 		
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBounds(300, 0, 660, 450);
 		table.setFillsViewportHeight(true);
 		
 		getContentPane().add(scrollPane);
-		
+	}
+
+	private void buildDetailsArea() {
 		JLabel lblDetalle1 = new JLabel("Detalle");
 		lblDetalle1.setFont(new Font("Dialog", Font.BOLD, 18));
 		lblDetalle1.setBounds(604, 462, 83, 25);
@@ -237,54 +225,66 @@ public class MainFrame extends JFrame {
 		
 		JLabel lblDetalle2 = new JLabel("Título:");
 		lblDetalle2.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle2.setBounds(387, 517, 70, 15);
+		lblDetalle2.setBounds(387, 517, 70, 25);
 		getContentPane().add(lblDetalle2);
 		
 		JLabel lblDetalle3 = new JLabel("Disco:");
 		lblDetalle3.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle3.setBounds(387, 544, 70, 15);
+		lblDetalle3.setBounds(387, 544, 70, 25);
 		getContentPane().add(lblDetalle3);
 		
 		JLabel lblDetalle4 = new JLabel("Artista:");
 		lblDetalle4.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle4.setBounds(387, 571, 70, 15);
+		lblDetalle4.setBounds(387, 571, 70, 25);
 		getContentPane().add(lblDetalle4);
 		
 		JLabel lblDetalle5 = new JLabel("Título:");
 		lblDetalle5.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle5.setBounds(387, 626, 70, 15);
+		lblDetalle5.setBounds(387, 626, 70, 25);
 		getContentPane().add(lblDetalle5);
 		
 		JLabel lblDetalle6 = new JLabel("Descripción:");
 		lblDetalle6.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle6.setBounds(387, 653, 103, 15);
+		lblDetalle6.setBounds(387, 653, 103, 25);
 		getContentPane().add(lblDetalle6);
 		
-		JLabel lblDetalle7 = new JLabel("Ir a Youtube");
-		lblDetalle7.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle7.setBounds(594, 487, 93, 15);
-		getContentPane().add(lblDetalle7);
+		lblGoYoutube = new JLabel("Ir a Youtube");
+		lblGoYoutube.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblGoYoutube.setBounds(594, 487, 93, 25);
+		createGoYoutubeListener();
+		getContentPane().add(lblGoYoutube);
 		
 		lblTitle = new JLabel("");
-		lblTitle.setBounds(503, 517, 431, 15);
+		lblTitle.setBounds(503, 517, 431, 25);
 		getContentPane().add(lblTitle);
 		
 		lblAlbum = new JLabel("");
-		lblAlbum.setBounds(503, 544, 431, 15);
+		lblAlbum.setBounds(503, 544, 431, 25);
 		getContentPane().add(lblAlbum);
 		
 		lblArtist = new JLabel("");
-		lblArtist.setBounds(503, 571, 431, 15);
+		lblArtist.setBounds(503, 571, 431, 25);
 		getContentPane().add(lblArtist);
 		
 		lblYtTitle = new JLabel("");
-		lblYtTitle.setBounds(503, 626, 431, 15);
+		lblYtTitle.setBounds(503, 626, 431, 25);
 		getContentPane().add(lblYtTitle);
 		
 		lblYtDescription = new JLabel("");
+		lblYtDescription.setVerticalAlignment(SwingConstants.TOP);
+		lblYtDescription.setVerticalTextPosition(SwingConstants.TOP);
+		lblYtDescription.setFont(new Font("Dialog", Font.PLAIN, 10));
 		lblYtDescription.setBounds(502, 653, 432, 54);
 		getContentPane().add(lblYtDescription);
+		
+		btnDownload = new JButton("Descargar");
+		btnDownload.setBounds(348, 463, 117, 25);
+		btnDownload.setEnabled(false);
+		getContentPane().add(btnDownload);
+	}
 
+
+	private void buildMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 
@@ -293,6 +293,120 @@ public class MainFrame extends JFrame {
 
 		JMenuItem mntmAsd = new JMenuItem("Asd");
 		mnArchivo.add(mntmAsd);
-
 	}
+	
+	private void createSearchListener() {
+		btnSearch.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				itSearcher.setTerm(txtSearch.getText());
+				
+				Integer mode = new Integer (rdbtnSearchMode.getSelection().getActionCommand());
+				itSearcher.setType(mode);
+				
+				List<Song> songs = itSearcher.search();
+				ytSearcher.search(songs.subList(0, 5));
+				
+				songTableModel.setSongs(songs);
+			}
+		});
+	}
+	
+	private void createChangePathListener(JButton btnChangePath) {
+		btnChangePath.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(downloadPath);
+				fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				int returnVal = fc.showOpenDialog(MainFrame.this);
+				if(returnVal == JFileChooser.APPROVE_OPTION){
+					downloadPath = fc.getSelectedFile();
+					lblSelectedDownloadPath.setText(downloadPath.getAbsolutePath());
+				}
+			}
+		});
+	}
+
+	private void createTableSelectionListener(ListSelectionModel selectionModel) {
+		selectionModel.addListSelectionListener(new ListSelectionListener() {
+			
+			public void valueChanged(ListSelectionEvent event) {
+				if(!event.getValueIsAdjusting()){
+					int[] selected = table.getSelectedRows();
+					if(selected.length == 1){
+						Song song = songTableModel.getSongs().get(selected[0]);
+						lblTitle.setText(song.getTitle());
+						lblArtist.setText(song.getArtist());
+						lblAlbum.setText(song.getAlbum());
+						lblYtTitle.setText(song.getYtTitle());
+						lblYtDescription.setText(song.getYtDescription());
+						
+						lblGoYoutube.setForeground(Color.BLUE);
+						goYoutubeEnabled = true;
+						
+						btnDownload.setEnabled(true);
+					}else if(selected.length > 1){
+						lblTitle.setText("");
+						lblArtist.setText("");
+						lblAlbum.setText("");
+						lblYtTitle.setText("");
+						lblYtDescription.setText("");
+						
+						lblGoYoutube.setForeground(Color.BLACK);
+						goYoutubeEnabled = false;
+						
+						btnDownload.setEnabled(true);
+					}else if(selected.length <= 0){
+						lblTitle.setText("");
+						lblArtist.setText("");
+						lblAlbum.setText("");
+						lblYtTitle.setText("");
+						lblYtDescription.setText("");
+						
+						lblGoYoutube.setForeground(Color.BLACK);
+						goYoutubeEnabled = false;
+						
+						btnDownload.setEnabled(false);
+					}
+				}
+			}
+		});
+	}
+	
+	private void createGoYoutubeListener() {
+		lblGoYoutube.addMouseListener(new MouseListener() {
+			
+			public void mouseReleased(MouseEvent e) {
+			}
+			
+			public void mousePressed(MouseEvent e) {
+			}
+			
+			public void mouseExited(MouseEvent e) {
+				lblGoYoutube.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+			
+			public void mouseEntered(MouseEvent e) {
+				if(goYoutubeEnabled){
+					lblGoYoutube.setCursor(new Cursor(Cursor.HAND_CURSOR));
+				}
+			}
+			
+			public void mouseClicked(MouseEvent e) {
+				if(goYoutubeEnabled){
+					int selected = table.getSelectedRow();
+					try {
+						Desktop.getDesktop().browse(new URI(songTableModel.getSongs().get(selected).getUrl()));
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+	}
+
+	
 }

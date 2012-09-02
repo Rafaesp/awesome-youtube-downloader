@@ -1,54 +1,66 @@
 package es.rafaespillaque.ayd;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.List;
 
-import com.google.api.client.googleapis.GoogleHeaders;
-import com.google.api.client.googleapis.json.JsonCParser;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson.JacksonFactory;
-import com.google.api.services.youtube.Youtube;
-import com.google.api.services.youtube.model.SearchListResponse;
-import com.google.api.services.youtube.model.SearchResult;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import es.rafaespillaque.ayd.model.Song;
 
 public class YouTubeSearcher {
-	private final JsonFactory jsonFactory = new JacksonFactory();
 
-	private final HttpTransport transport = new NetHttpTransport();
+	private static final String BASE_URL = "http://gdata.youtube.com/feeds/api/videos?alt=json&q=";
 
-	public YouTubeSearcher() {
-		final JsonCParser parser = new JsonCParser(jsonFactory);
-		// requestFactory = transport.createRequestFactory();
-		Youtube youtube = new Youtube(transport, jsonFactory, new HttpRequestInitializer() {
-
-			public void initialize(HttpRequest request) throws IOException {
-				GoogleHeaders headers = new GoogleHeaders();
-				headers.setApplicationName("Google-YouTubeSample/1.0");
-				headers.setGDataVersion("2");
-				request.setHeaders(headers);
-				request.setParser(parser);
-
-			}
-		});
-//		Youtube youtube = new Youtube(transport, jsonFactory, null);
+	
+	public void search(List<Song> songs){
+		for (Song song : songs) {
+			search(song);
+		}
+	}
+	
+	private void search(Song song){
+		URL url;
+		
+		String q = song.getArtist()+" "+song.getTitle();
 		
 		try {
-			Youtube.Search.List request = youtube.search().list();
-			request.setQ("sabina");
-			request.setKey("AI39si51i3EiMc4Rp8TyNf10seUY3fTiJix4m868iX38-Wv-Ru94A759idzzU2zT2nVYi_M67IhCmqiMoxegikelc6BuvPFTgQ");
-			SearchListResponse response = request.execute();
-			java.util.List<SearchResult> searchResults = response.getSearchResults();
-			for (SearchResult searchResult : searchResults) {
-				System.out.println(searchResult.get("title"));
-			}
+			url = new URL(BASE_URL + URLEncoder.encode(q, "UTF-8"));
+			String json = Utils.read(url.openConnection().getInputStream());
+			parseJSON(json, song);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
-
+	
+	private void parseJSON(String json, Song song){
+		try {
+			JSONObject root = new JSONObject(json);
+			JSONObject feed = root.getJSONObject("feed");
+			JSONArray entry = feed.getJSONArray("entry");
+			
+			//TODO Recorrer el array para buscar que el autor sea discográfica
+			JSONObject video = entry.getJSONObject(0);
+			
+			JSONObject prop = video.getJSONObject("title");
+			song.setYtTitle(prop.getString("$t"));
+			
+			prop = video.getJSONObject("content");
+			song.setYtDescription(prop.getString("$t"));
+			
+			JSONArray propLink = video.getJSONArray("link");
+			
+			song.setUrl(propLink.getJSONObject(0).getString("href"));
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }

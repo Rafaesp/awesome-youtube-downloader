@@ -1,7 +1,6 @@
 package es.rafaespillaque.ayd;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,8 +9,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,7 +46,7 @@ public class ITunesSearcher {
 		}
 		
 		URL url = new URL(BASE_URL + builder.toString());
-		return parseJSON(read(url.openConnection().getInputStream()));
+		return parseJSON(Utils.read(url.openConnection().getInputStream()));
 		
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -86,14 +83,6 @@ public class ITunesSearcher {
 	
 	public void reset(){
 		params.clear();
-	}
-	
-	private String read(InputStream is){
-		try {
-	        return new Scanner(is).useDelimiter("\\A").next();
-	    } catch (NoSuchElementException e) {
-	        return "";
-	    }
 	}
 	
 	private List<Song> parseJSON(String json){
