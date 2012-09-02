@@ -1,5 +1,6 @@
 package es.rafaespillaque.ayd;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.EventQueue;
@@ -8,7 +9,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -36,14 +36,13 @@ import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 
 import es.rafaespillaque.ayd.model.Song;
-import javax.swing.SwingConstants;
-import java.awt.Color;
 
 public class MainFrame extends JFrame {
 
@@ -121,8 +120,9 @@ public class MainFrame extends JFrame {
 
 		txtSearch = new JTextField();
 		txtSearch.setBounds(12, 24, 277, 34);
-		panel.add(txtSearch);
 		txtSearch.setColumns(10);
+		createEnterKeyListener();
+		panel.add(txtSearch);
 
 		JLabel lblBuscar = new JLabel("Buscar");
 		lblBuscar.setBounds(12, 0, 87, 24);
@@ -295,10 +295,28 @@ public class MainFrame extends JFrame {
 		mnArchivo.add(mntmAsd);
 	}
 	
+	private void createEnterKeyListener(){
+		txtSearch.addKeyListener(new KeyListener() {
+			
+			public void keyTyped(KeyEvent keyevent) {
+			}
+			
+			public void keyReleased(KeyEvent keyevent) {
+				if(keyevent.getKeyCode() == KeyEvent.VK_ENTER){
+					btnSearch.doClick();
+				}
+			}
+			
+			public void keyPressed(KeyEvent keyevent) {
+			}
+		});
+	}
+	
 	private void createSearchListener() {
 		btnSearch.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
+				MainFrame.this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 				itSearcher.setTerm(txtSearch.getText());
 				
 				Integer mode = new Integer (rdbtnSearchMode.getSelection().getActionCommand());
@@ -308,6 +326,7 @@ public class MainFrame extends JFrame {
 				ytSearcher.search(songs.subList(0, 5));
 				
 				songTableModel.setSongs(songs);
+				MainFrame.this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
 		});
 	}
