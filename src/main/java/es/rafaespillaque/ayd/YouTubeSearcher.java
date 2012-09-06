@@ -23,20 +23,25 @@ public class YouTubeSearcher {
 		}
 	}
 	
-	private void search(Song song){
-		URL url;
-		
-		String q = song.getArtist()+" "+song.getTitle();
-		
-		try {
-			url = new URL(BASE_URL + URLEncoder.encode(q, "UTF-8"));
-			String json = Utils.read(url.openConnection().getInputStream());
-			parseJSON(json, song);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void search(final Song song){
+		new Thread(new Runnable() {
+			
+			public void run() {
+				URL url;
+				
+				String q = song.getArtist()+" "+song.getTitle();
+				
+				try {
+					url = new URL(BASE_URL + URLEncoder.encode(q, "UTF-8"));
+					String json = Utils.read(url.openConnection().getInputStream());
+					parseJSON(json, song);
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 	}
 	
 	private void parseJSON(String json, Song song){
@@ -57,6 +62,8 @@ public class YouTubeSearcher {
 			JSONArray propLink = video.getJSONArray("link");
 			
 			song.setUrl(propLink.getJSONObject(0).getString("href"));
+			
+			song.notifyObservers("youtube");
 			
 		} catch (JSONException e) {
 			e.printStackTrace();

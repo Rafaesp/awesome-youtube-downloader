@@ -28,6 +28,11 @@ public class SongTableModel extends AbstractTableModel {
 		this.songs = songs;
 		fireTableDataChanged();
 	}
+	
+	public void addSong(Song song){
+		songs.add(song);
+		fireTableRowsUpdated(songs.size(), songs.size());
+	}
 
 	public int getColumnCount() {
 		return columnNames.length;

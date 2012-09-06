@@ -17,7 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -44,7 +47,7 @@ import javax.swing.table.TableColumnModel;
 
 import es.rafaespillaque.ayd.model.Song;
 
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame implements Observer{
 
 	private static final long serialVersionUID = 6571927323567562621L;
 
@@ -68,6 +71,7 @@ public class MainFrame extends JFrame {
 	private SongTableModel songTableModel;
 	private File downloadPath;
 	private boolean goYoutubeEnabled = false;
+	private List<Song> songs;
 
 
 
@@ -84,10 +88,16 @@ public class MainFrame extends JFrame {
 		});
 	}
 
-	public MainFrame() {
+	public MainFrame(){
 		setResizable(false);
 		itSearcher = new ITunesSearcher();
 		ytSearcher = new YouTubeSearcher();
+		songs = new LinkedList<Song>();
+		for(int i = 0; i<50; ++i){
+			Song song = new Song();
+			song.addObserver(this);
+			songs.add(song);
+		}
 		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -109,7 +119,8 @@ public class MainFrame extends JFrame {
 		buildDetailsArea();
 
 		buildMenuBar();
-
+		
+		songTableModel.setSongs(songs);
 	}
 
 	private void buildLeftPanel() {
@@ -314,18 +325,15 @@ public class MainFrame extends JFrame {
 	
 	private void createSearchListener() {
 		btnSearch.addActionListener(new ActionListener() {
-			
+
 			public void actionPerformed(ActionEvent e) {
 				MainFrame.this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 				itSearcher.setTerm(txtSearch.getText());
 				
 				Integer mode = new Integer (rdbtnSearchMode.getSelection().getActionCommand());
 				itSearcher.setType(mode);
+				itSearcher.search(songs);
 				
-				List<Song> songs = itSearcher.search();
-				ytSearcher.search(songs.subList(0, 5));
-				
-				songTableModel.setSongs(songs);
 				MainFrame.this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
 		});
@@ -425,6 +433,17 @@ public class MainFrame extends JFrame {
 				}
 			}
 		});
+	}
+
+	public void update(Observable observable, Object obj) {
+		Song song = (Song)observable;
+		if(obj.equals("itunes")){
+			ytSearcher.search(song);
+			songTableModel.fireTableDataChanged();
+		}else if(obj.equals("youtube")){
+			int index = songTableModel.getSongs().indexOf(song);
+			songTableModel.fireTableRowsUpdated(index, index);
+		}
 	}
 
 	

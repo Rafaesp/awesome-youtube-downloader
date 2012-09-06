@@ -1,48 +1,57 @@
 package es.rafaespillaque.ayd.model;
 
+import java.util.Observable;
 
-public class Song {
+
+public class Song extends Observable{
 	private String title = "";
 	private String album = "";
 	private String artist = "";
 	private String ytTitle = "";
 	private String ytDescription = "";
 	private String url = "";
+	
 	public String getTitle() {
 		return title;
 	}
 	public void setTitle(String title) {
 		this.title = title != null? title : "";
+		setChanged();
 	}
 	public String getAlbum() {
 		return album;
 	}
 	public void setAlbum(String album) {
 		this.album = album != null? album : "";
+		setChanged();
 	}
 	public String getArtist() {
 		return artist;
 	}
 	public void setArtist(String artist) {
 		this.artist = artist != null? artist : "";
+		setChanged();
 	}
 	public String getYtTitle() {
 		return ytTitle;
 	}
 	public void setYtTitle(String ytTitle) {
 		this.ytTitle = ytTitle != null? ytTitle : "";
+		setChanged();
 	}
 	public String getYtDescription() {
 		return ytDescription;
 	}
 	public void setYtDescription(String ytDescription) {
 		this.ytDescription = ytDescription != null? "<html><p>"+ytDescription+"</p></html>" : "";
+		setChanged();
 	}
 	public String getUrl() {
 		return url;
 	}
 	public void setUrl(String url) {
 		this.url = url!=null? url : "";
+		setChanged();
 	}
 	@Override
 	public int hashCode() {
@@ -67,7 +76,5 @@ public class Song {
 			return false;
 		return true;
 	}
-	
-	
 
 }
