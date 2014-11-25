@@ -17,11 +17,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -291,9 +293,28 @@ public class MainFrame extends JFrame implements Observer{
 		btnDownload = new JButton("Descargar");
 		btnDownload.setBounds(348, 463, 117, 25);
 		btnDownload.setEnabled(false);
+		createDownloadListener();
 		getContentPane().add(btnDownload);
 	}
 
+
+	private void createDownloadListener() {
+		btnDownload.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent action) {
+				int[] selectedRows = table.getSelectedRows();
+				
+				List<Song> selectedSongs = new ArrayList<Song>(selectedRows.length);
+
+				for (int i = 0; i < selectedRows.length; i++) {
+					selectedSongs.add(songs.get(selectedRows[i]));
+				}
+				
+				for (Song song : selectedSongs) {
+					new Thread(new DownloaderConverter(song.getUrl())).start();
+				}
+			}
+		});
+	}
 
 	private void buildMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
