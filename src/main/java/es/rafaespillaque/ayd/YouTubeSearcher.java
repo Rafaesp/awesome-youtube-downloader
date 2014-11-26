@@ -17,10 +17,19 @@ public class YouTubeSearcher {
 	private static final String BASE_URL = "http://gdata.youtube.com/feeds/api/videos?alt=json&q=";
 
 	
-	public void search(List<Song> songs){
-		for (Song song : songs) {
-			search(song);
-		}
+	public void search(final List<Song> songs){
+		new Thread(new Runnable() {
+			public void run() {
+				for (Song song : songs) {
+					search(song);
+					try {
+						Thread.sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}).start();
 	}
 	
 	public void search(final Song song){

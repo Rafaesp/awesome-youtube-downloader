@@ -1,36 +1,29 @@
 package es.rafaespillaque.ayd;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.python.core.PyString;
-import org.python.core.PySystemState;
-import org.python.util.PythonInterpreter;
+import es.rafaespillaque.ayd.model.Song;
 
 public class DownloaderConverter implements Runnable{
 
-	String command;
-	String url;
-	String path;
+	private String command;
+	private String path;
+	private Song song;
 	
-	
-	public DownloaderConverter(String url) {
-		super();
-		this.command = "C:\\Users\\Rafa\\git\\awesome-youtube-downloader\\youtube-dl.exe --extract-audio --audio-format mp3 ";
-		this.url = url;
-		this.path = "PATH=%PATH%;C:\\Users\\Rafa\\git\\awesome-youtube-downloader\\ffmpeg";
+	public DownloaderConverter(Song song) {
+		this(Utils.getCurrentPath() + "\\youtube-dl.exe --extract-audio --audio-format mp3" 
+					+ " -o \"" + song.getArtist() + " - " + song.getTitle() + ".%(ext)s\" ", 
+				"PATH=%PATH%;" + Utils.getCurrentPath() + "\\ffmpeg",
+				song);
 	}
 	
-	public DownloaderConverter(String command, String url, String path) {
+	public DownloaderConverter(String command, String path, Song song) {
 		super();
 		this.command = command;
-		this.url = url;
 		this.path = path;
+		this.song = song;
 	}
 
 
@@ -42,7 +35,7 @@ public class DownloaderConverter implements Runnable{
 	private void download() {
 		Runtime rt = Runtime.getRuntime();
 		try {
-			final Process pr = rt.exec(command + url, new String[]{path});
+			final Process pr = rt.exec(command + song.getUrl(), new String[]{path});
 			new Thread(new Runnable() {
 			    public void run() {
 			        BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
@@ -51,6 +44,8 @@ public class DownloaderConverter implements Runnable{
 			        try {
 			            while ((line = input.readLine()) != null) {
 			                System.out.println(line);
+			                song.setDownloadStatus(line);
+			                song.notifyObservers("status");
 			            }
 			        } catch (IOException e) {
 			            e.printStackTrace();
@@ -59,12 +54,14 @@ public class DownloaderConverter implements Runnable{
 			}).start();
 			new Thread(new Runnable() {
 			    public void run() {
-			        BufferedReader input = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
+			        BufferedReader inputErr = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
 			        String line = null; 
 
 			        try {
-			            while ((line = input.readLine()) != null) {
-			                System.out.println(line);
+			            while ((line = inputErr.readLine()) != null) {
+			            	System.out.println(line);
+			                song.setDownloadStatus(line);
+			                song.notifyObservers("status");
 			            }
 			        } catch (IOException e) {
 			            e.printStackTrace();

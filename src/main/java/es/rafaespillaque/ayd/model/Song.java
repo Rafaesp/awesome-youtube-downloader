@@ -10,6 +10,8 @@ public class Song extends Observable{
 	private String ytTitle = "";
 	private String ytDescription = "";
 	private String url = "";
+	private String downloadStatus = "";
+	private StringBuilder downloadLog = new StringBuilder();
 	
 	public String getTitle() {
 		return title;
@@ -51,6 +53,26 @@ public class Song extends Observable{
 	}
 	public void setUrl(String url) {
 		this.url = url!=null? url : "";
+		setChanged();
+	}
+	public String getDownloadStatus() {
+		return downloadStatus;
+	}
+	public void setDownloadStatus(String downloadStatus) {
+		this.downloadLog.append(downloadStatus);
+		this.downloadLog.append("\n");
+		int indexOf = downloadStatus.indexOf("%");
+		if(indexOf != -1){
+			this.downloadStatus = downloadStatus.substring(indexOf-4, indexOf+1).replaceAll(" ", "");
+			System.out.println(this.downloadStatus);
+		}else{
+			if(downloadStatus.contains("ffmpeg")){
+				this.downloadStatus = "OK";
+			}else{
+				this.downloadStatus = "0%";
+			}
+		}
+				
 		setChanged();
 	}
 	@Override

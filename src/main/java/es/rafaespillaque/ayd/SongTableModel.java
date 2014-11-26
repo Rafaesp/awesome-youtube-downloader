@@ -50,6 +50,8 @@ public class SongTableModel extends AbstractTableModel {
 				return songs.get(row).getArtist();
 			case 2:
 				return songs.get(row).getYtTitle();
+			case 3:
+				return songs.get(row).getDownloadStatus();
 			default:
 				return null;
 		}

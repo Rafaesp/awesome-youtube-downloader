@@ -18,23 +18,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -47,6 +43,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 
+import es.rafaespillaque.ayd.ITunesSearcher.ITunesSearchListener;
 import es.rafaespillaque.ayd.model.Song;
 
 public class MainFrame extends JFrame implements Observer{
@@ -75,13 +72,12 @@ public class MainFrame extends JFrame implements Observer{
 	private boolean goYoutubeEnabled = false;
 	private List<Song> songs;
 
-
-
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					MainFrame frame = new MainFrame();
+					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -92,14 +88,8 @@ public class MainFrame extends JFrame implements Observer{
 
 	public MainFrame(){
 		setResizable(false);
-		itSearcher = new ITunesSearcher();
+		itSearcher = new ITunesSearcher(createItunesSearchListener());
 		ytSearcher = new YouTubeSearcher();
-		songs = new LinkedList<Song>();
-		for(int i = 0; i<50; ++i){
-			Song song = new Song();
-			song.addObserver(this);
-			songs.add(song);
-		}
 		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -121,8 +111,6 @@ public class MainFrame extends JFrame implements Observer{
 		buildDetailsArea();
 
 		buildMenuBar();
-		
-		songTableModel.setSongs(songs);
 	}
 
 	private void buildLeftPanel() {
@@ -162,7 +150,7 @@ public class MainFrame extends JFrame implements Observer{
 		rdbtnSearchMode.add(rdbtnAlbums);
 		rdbtnSearchMode.add(rdbtnArtists);
 
-		btnSearch = new JButton("Buscar!");
+		btnSearch = new JButton("Buscar");
 		btnSearch.setBounds(93, 183, 117, 25);
 		createSearchListener();
 		panel.add(btnSearch);
@@ -175,7 +163,7 @@ public class MainFrame extends JFrame implements Observer{
 		lblRutaDeDescarga.setBounds(12, 234, 277, 24);
 		panel.add(lblRutaDeDescarga);
 		
-		downloadPath = new File("user.home");
+		downloadPath = new File("user.home"+File.separator+"ayd");
 		
 		lblSelectedDownloadPath = new JLabel(downloadPath.getAbsolutePath());
 		lblSelectedDownloadPath.setBounds(12, 262, 277, 25);
@@ -189,27 +177,11 @@ public class MainFrame extends JFrame implements Observer{
 		JSeparator separator_1 = new JSeparator();
 		separator_1.setBounds(8, 337, 289, 2);
 		panel.add(separator_1);
-
-		JProgressBar progressBar = new JProgressBar();
-		progressBar.setBounds(12, 392, 277, 24);
-		panel.add(progressBar);
-
-		JList list = new JList();
-		list.setBounds(12, 471, 277, 234);
-		panel.add(list);
-
-		JLabel lblColaDeDescargas = new JLabel("Cola de descargas");
-		lblColaDeDescargas.setBounds(12, 432, 277, 24);
-		panel.add(lblColaDeDescargas);
-
-		JLabel lblCancionActual = new JLabel("Canción actual");
-		lblCancionActual.setBounds(12, 351, 277, 23);
-		panel.add(lblCancionActual);
 	}
 	
 	private void buildScrollPane() {
 		songTableModel = new SongTableModel(
-				new String[]{ "Nombre", "Artista", "YouTube"});
+				new String[]{ "Nombre", "Artista", "YouTube", "%"});
 		
 		table = new JTable(songTableModel);
 		
@@ -217,7 +189,8 @@ public class MainFrame extends JFrame implements Observer{
 		
 		columnModel.getColumn(0).setPreferredWidth(267);
 		columnModel.getColumn(1).setPreferredWidth(125);
-		columnModel.getColumn(2).setPreferredWidth(267);
+		columnModel.getColumn(2).setPreferredWidth(228);
+		columnModel.getColumn(3).setPreferredWidth(40);
 		
 		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		ListSelectionModel selectionModel = table.getSelectionModel();
@@ -310,7 +283,7 @@ public class MainFrame extends JFrame implements Observer{
 				}
 				
 				for (Song song : selectedSongs) {
-					new Thread(new DownloaderConverter(song.getUrl())).start();
+					new Thread(new DownloaderConverter(song)).start();
 				}
 			}
 		});
@@ -320,10 +293,10 @@ public class MainFrame extends JFrame implements Observer{
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 
-		JMenu mnArchivo = new JMenu("Archivo");
+		JMenu mnArchivo = new JMenu("Opciones");
 		menuBar.add(mnArchivo);
 
-		JMenuItem mntmAsd = new JMenuItem("Asd");
+		JMenuItem mntmAsd = new JMenuItem("Config");
 		mnArchivo.add(mntmAsd);
 	}
 	
@@ -353,7 +326,7 @@ public class MainFrame extends JFrame implements Observer{
 				
 				Integer mode = new Integer (rdbtnSearchMode.getSelection().getActionCommand());
 				itSearcher.setType(mode);
-				itSearcher.search(songs);
+				itSearcher.search();
 				
 				MainFrame.this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
@@ -456,12 +429,22 @@ public class MainFrame extends JFrame implements Observer{
 		});
 	}
 
+	public ITunesSearchListener createItunesSearchListener(){
+		return new ITunesSearchListener(){
+			public void onSearchFinished(List<Song> songs) {
+				MainFrame.this.songs = songs;
+				for (Song song : songs) {
+					song.addObserver(MainFrame.this);
+				}
+				songTableModel.setSongs(songs);
+				ytSearcher.search(songs);
+			}
+		};
+	}
+	
 	public void update(Observable observable, Object obj) {
 		Song song = (Song)observable;
-		if(obj.equals("itunes")){
-			ytSearcher.search(song);
-			songTableModel.fireTableDataChanged();
-		}else if(obj.equals("youtube")){
+		if(obj.equals("youtube") || obj.equals("status")){
 			int index = songTableModel.getSongs().indexOf(song);
 			songTableModel.fireTableRowsUpdated(index, index);
 		}

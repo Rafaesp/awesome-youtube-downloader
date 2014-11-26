@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,14 @@ public class ITunesSearcher {
 	public static final int MODE_ARTIST = 3;
 
 	private Map<String, String> params;
+	private ITunesSearchListener listener;
 
-	public ITunesSearcher() {
+	public ITunesSearcher(ITunesSearchListener listener) {
+		this.listener = listener;
 		params = new HashMap<String, String>();
 	}
 
-	public void search(final List<Song> songs) {
+	public void search() {
 		new Thread(new Runnable() {
 
 			public void run() {
@@ -38,7 +41,7 @@ public class ITunesSearcher {
 					builder.append("country=ES");
 					builder.append("&lang=es_ES");
 					builder.append("&media=music");
-					builder.append("&entity=song");
+					builder.append("&limit=200");
 					params.put("entity", "song");
 					for (String key : params.keySet()) {
 						builder.append("&");
@@ -48,7 +51,7 @@ public class ITunesSearcher {
 					}
 
 					URL url = new URL(BASE_URL + builder.toString());
-					parseJSON(Utils.read(url.openConnection().getInputStream()), songs);
+					parseJSON(Utils.read(url.openConnection().getInputStream()));
 
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
@@ -87,27 +90,31 @@ public class ITunesSearcher {
 		params.clear();
 	}
 
-	private void parseJSON(String json, List<Song> songs) {
+	private void parseJSON(String json) {
 		System.out.println(json);
 		try {
 			JSONObject root = new JSONObject(json);
 			JSONArray array = root.getJSONArray("results");
-
+			List<Song> songs = new ArrayList<Song>(array.length());
 			for (int i = 0; i < array.length(); ++i) {
 				JSONObject result = array.getJSONObject(i);
-				Song song = songs.get(i);
+				Song song = new Song();
 				song.setTitle(result.getString("trackName"));
 				song.setAlbum(result.getString("collectionName"));
 				song.setArtist(result.getString("artistName"));
 				song.setYtTitle("");
 				song.setYtDescription("");
 				song.setUrl("");
-				song.notifyObservers("itunes");
+				songs.add(song);
 			}
-
+			
+			listener.onSearchFinished(songs);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
+	interface ITunesSearchListener{
+		public void onSearchFinished(List<Song> songs);
+	}
 }
