@@ -17,9 +17,9 @@ public class Utils {
 	
 	public static String getCurrentPath(){
 		String path = Utils.class.getProtectionDomain().getCodeSource().getLocation().toString();
-		System.out.println(path);
-		path = path.replaceAll("target/classes/", "").replaceAll("file:/", "").replaceAll("/", "\\");
-		System.out.println(path);
+		path = path.replace("target/classes/", ""); //Para que funcione desde Eclipse
+		path = path.replace("file:/", "");
+		path = path.replace("/", "\\");
 		return path;
 	}
 	

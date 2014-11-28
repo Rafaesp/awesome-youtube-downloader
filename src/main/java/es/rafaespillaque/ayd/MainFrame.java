@@ -283,7 +283,7 @@ public class MainFrame extends JFrame implements Observer{
 				}
 				
 				for (Song song : selectedSongs) {
-					new Thread(new DownloaderConverter(song)).start();
+					new Thread(new YouTubeDLManager(song)).start();
 				}
 			}
 		});
@@ -293,11 +293,23 @@ public class MainFrame extends JFrame implements Observer{
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 
-		JMenu mnArchivo = new JMenu("Opciones");
-		menuBar.add(mnArchivo);
+		JMenu menuArchivo = new JMenu("Opciones");
+		menuBar.add(menuArchivo);
 
-		JMenuItem mntmAsd = new JMenuItem("Config");
-		mnArchivo.add(mntmAsd);
+		JMenuItem menuItemConfig = new JMenuItem("Config");
+		menuArchivo.add(menuItemConfig);
+		menuItemConfig.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		JMenuItem menuItemUpdate = new JMenuItem("update youtube-dl");
+		menuArchivo.add(menuItemUpdate);
+		menuItemUpdate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new Thread(new YouTubeDLManager()).start();
+			}
+		});
 	}
 	
 	private void createEnterKeyListener(){
