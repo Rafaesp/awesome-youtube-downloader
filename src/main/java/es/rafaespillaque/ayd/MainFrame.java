@@ -21,6 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -73,6 +80,22 @@ public class MainFrame extends JFrame implements Observer{
 	private List<Song> songs;
 
 	public static void main(String[] args) {
+		Level logLevel = Level.parse(Utils.getProp("logging.level", "ALL"));
+		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(logLevel);
+		ConsoleHandler consoleHandler = new ConsoleHandler();
+		consoleHandler.setLevel(logLevel);
+		Logger.getGlobal().addHandler(consoleHandler);
+		if(Utils.getProp("logging.file.enabled", Boolean.FALSE)){
+			try {
+				FileHandler fileHandler = new FileHandler("log.txt");
+				fileHandler.setFormatter(new SimpleFormatter());
+				fileHandler.setLevel(logLevel);
+				Logger.getGlobal().addHandler(fileHandler);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		Logger.getGlobal().fine("Start");
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {

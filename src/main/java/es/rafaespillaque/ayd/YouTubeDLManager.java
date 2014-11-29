@@ -3,7 +3,10 @@ package es.rafaespillaque.ayd;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import es.rafaespillaque.ayd.model.Song;
@@ -61,7 +64,7 @@ public class YouTubeDLManager implements Runnable{
 			String command = Utils.getCurrentPath() + "\\youtube-dl.exe " + 
 								options + " -o \"" + song.getArtist() + " - " + song.getTitle() + ".%(ext)s\" " + song.getUrl();
 			String path = "PATH=%PATH%;" + Utils.getCurrentPath() + "\\ffmpeg";
-			//TODO debug command
+			Logger.getGlobal().fine(command);
 			final Process pr = rt.exec(command, new String[]{path});
 			new Thread(new Runnable() {
 			    public void run() {
@@ -70,7 +73,7 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = input.readLine()) != null) {
-			                System.out.println(line);
+			                Logger.getGlobal().fine(line);
 			                song.setDownloadStatus(line);
 			                song.notifyObservers("status");
 			            }
@@ -86,7 +89,7 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = inputErr.readLine()) != null) {
-			            	System.out.println(line);
+			            	Logger.getGlobal().warning(line);
 			                song.setDownloadStatus(line);
 			                song.notifyObservers("status");
 			            }
@@ -109,7 +112,7 @@ public class YouTubeDLManager implements Runnable{
 		try {
 			String command = Utils.getCurrentPath() + "\\youtube-dl.exe -U";
 			String path = "PATH=%PATH%;" + Utils.getCurrentPath() + "\\ffmpeg";
-			//TODO debug command
+			Logger.getGlobal().fine(command);
 			final Process pr = rt.exec(command, new String[]{path});
 			new Thread(new Runnable() {
 			    public void run() {
@@ -118,7 +121,7 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = input.readLine()) != null) {
-			                System.out.println(line);
+			                Logger.getGlobal().fine(line);
 			            }
 			        } catch (IOException e) {
 			            e.printStackTrace();
@@ -132,7 +135,7 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = inputErr.readLine()) != null) {
-			            	System.out.println(line);
+			            	Logger.getGlobal().warning(line);
 			            }
 			        } catch (IOException e) {
 			            e.printStackTrace();
