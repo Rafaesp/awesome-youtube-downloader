@@ -5,6 +5,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +27,7 @@ public class YouTubeSearcher {
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 					}
 				}
 			}
@@ -42,12 +44,12 @@ public class YouTubeSearcher {
 				
 				try {
 					url = new URL(BASE_URL + URLEncoder.encode(q, "UTF-8"));
-					String json = Utils.read(url.openConnection().getInputStream());
+					String json = Utils.read(url.openConnection(Utils.getProxy()).getInputStream());
 					parseJSON(json, song);
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				} catch (IOException e) {
-					e.printStackTrace();
+					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		}).start();
@@ -75,7 +77,7 @@ public class YouTubeSearcher {
 			song.notifyObservers("youtube");
 			
 		} catch (JSONException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "JSONException con json: " + json, e);
 		}
 	}
 	

@@ -3,10 +3,7 @@ package es.rafaespillaque.ayd;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import es.rafaespillaque.ayd.model.Song;
@@ -22,8 +19,7 @@ public class YouTubeDLManager implements Runnable{
 	}
 	
 	public YouTubeDLManager(Song song) {
-		this("--extract-audio --audio-format mp3", 
-				song);
+		this(Utils.getProp("youtube-dl.options", "--extract-audio --audio-format mp3"), song);
 	}
 	
 	public YouTubeDLManager(String options, Song song) {
@@ -51,7 +47,7 @@ public class YouTubeDLManager implements Runnable{
 						break;
 					}
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		}
@@ -78,7 +74,7 @@ public class YouTubeDLManager implements Runnable{
 			                song.notifyObservers("status");
 			            }
 			        } catch (IOException e) {
-			            e.printStackTrace();
+			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
@@ -94,16 +90,16 @@ public class YouTubeDLManager implements Runnable{
 			                song.notifyObservers("status");
 			            }
 			        } catch (IOException e) {
-			            e.printStackTrace();
+			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
 
 			pr.waitFor();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 	
@@ -124,7 +120,7 @@ public class YouTubeDLManager implements Runnable{
 			                Logger.getGlobal().fine(line);
 			            }
 			        } catch (IOException e) {
-			            e.printStackTrace();
+			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
@@ -138,16 +134,16 @@ public class YouTubeDLManager implements Runnable{
 			            	Logger.getGlobal().warning(line);
 			            }
 			        } catch (IOException e) {
-			            e.printStackTrace();
+			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
 
 			pr.waitFor();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 	

@@ -60,20 +60,28 @@ public class Song extends Observable{
 	}
 	public void setDownloadStatus(String downloadStatus) {
 		this.downloadLog.append(downloadStatus);
-		this.downloadLog.append("\n");
+		this.downloadLog.append("<br/>");
 		int indexOf = downloadStatus.indexOf("%");
 		if(indexOf != -1){
 			this.downloadStatus = downloadStatus.substring(indexOf-4, indexOf+1).replaceAll(" ", "");
-			System.out.println(this.downloadStatus);
 		}else{
 			if(downloadStatus.contains("ffmpeg")){
 				this.downloadStatus = "OK";
-			}else{
+			}else if(downloadStatus.contains("Unicode")){
+				this.downloadStatus = "OK";
+			}else if(downloadStatus.contains("Deleting original")){
+				this.downloadStatus = "OK";
+			}else if(!this.downloadStatus.equals("OK")){
 				this.downloadStatus = "0%";
+			}else{
+				this.downloadStatus = "log";
 			}
 		}
 				
 		setChanged();
+	}
+	public String getDownloadLog() {
+		return downloadLog.toString();
 	}
 	@Override
 	public int hashCode() {

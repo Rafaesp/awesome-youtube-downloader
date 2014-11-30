@@ -3,18 +3,24 @@ package es.rafaespillaque.ayd;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -31,6 +37,7 @@ import java.util.logging.SimpleFormatter;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -58,6 +65,7 @@ public class MainFrame extends JFrame implements Observer{
 	private static final long serialVersionUID = 6571927323567562621L;
 
 	private static final int WIDTH = 960;
+	private static final int HEIGHT = 760;
 
 	private JTextField txtSearch;
 	private JLabel lblTitle;
@@ -79,6 +87,10 @@ public class MainFrame extends JFrame implements Observer{
 	private boolean goYoutubeEnabled = false;
 	private List<Song> songs;
 
+	private JRadioButton rdbtnAlbums;
+
+	private JRadioButton rdbtnArtists;
+
 	public static void main(String[] args) {
 		Level logLevel = Level.parse(Utils.getProp("logging.level", "ALL"));
 		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(logLevel);
@@ -92,18 +104,19 @@ public class MainFrame extends JFrame implements Observer{
 				fileHandler.setLevel(logLevel);
 				Logger.getGlobal().addHandler(fileHandler);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			}
 		}
-		Logger.getGlobal().fine("Start");
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					Logger.getGlobal().fine("Start");
 					MainFrame frame = new MainFrame();
 					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					frame.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		});
@@ -117,14 +130,14 @@ public class MainFrame extends JFrame implements Observer{
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
 		Rectangle screen = ge.getMaximumWindowBounds();
 
-		setSize(960, screen.height);
-		setLocation(screen.width / 2 - WIDTH / 2, 0);
+		setSize(WIDTH, HEIGHT);
+		setLocation(screen.width / 2 - WIDTH / 2, screen.height/ 2 - HEIGHT/ 2);
 		getContentPane().setLayout(null);
 
 		buildLeftPanel();
@@ -138,7 +151,7 @@ public class MainFrame extends JFrame implements Observer{
 
 	private void buildLeftPanel() {
 		JPanel panel = new JPanel();
-		panel.setBounds(0, 0, 300, 745);
+		panel.setBounds(0, 0, 300, 445);
 		getContentPane().add(panel);
 		panel.setLayout(null);
 
@@ -158,12 +171,12 @@ public class MainFrame extends JFrame implements Observer{
 		rdbtnSongs.setSelected(true);
 		panel.add(rdbtnSongs);
 
-		JRadioButton rdbtnAlbums = new JRadioButton("Disco");
+		rdbtnAlbums = new JRadioButton("Disco");
 		rdbtnAlbums.setBounds(8, 124, 149, 23);
 		rdbtnAlbums.setActionCommand(ITunesSearcher.MODE_ALBUM+"");
 		panel.add(rdbtnAlbums);
 
-		JRadioButton rdbtnArtists = new JRadioButton("Artista");
+		rdbtnArtists = new JRadioButton("Artista");
 		rdbtnArtists.setBounds(8, 152, 149, 23);
 		rdbtnArtists.setActionCommand(ITunesSearcher.MODE_ARTIST+"");
 		panel.add(rdbtnArtists);
@@ -186,7 +199,7 @@ public class MainFrame extends JFrame implements Observer{
 		lblRutaDeDescarga.setBounds(12, 234, 277, 24);
 		panel.add(lblRutaDeDescarga);
 		
-		downloadPath = new File("user.home"+File.separator+"ayd");
+		downloadPath = new File(Utils.getCurrentPath() + File.separator + "ayd");
 		
 		lblSelectedDownloadPath = new JLabel(downloadPath.getAbsolutePath());
 		lblSelectedDownloadPath.setBounds(12, 262, 277, 25);
@@ -218,6 +231,7 @@ public class MainFrame extends JFrame implements Observer{
 		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		ListSelectionModel selectionModel = table.getSelectionModel();
 		createTableSelectionListener(selectionModel);
+		createTableClickListener(table);
 		
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBounds(300, 0, 660, 450);
@@ -234,27 +248,27 @@ public class MainFrame extends JFrame implements Observer{
 		
 		JLabel lblDetalle2 = new JLabel("Título:");
 		lblDetalle2.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle2.setBounds(387, 517, 70, 25);
+		lblDetalle2.setBounds(20, 517, 70, 25);
 		getContentPane().add(lblDetalle2);
 		
 		JLabel lblDetalle3 = new JLabel("Disco:");
 		lblDetalle3.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle3.setBounds(387, 544, 70, 25);
+		lblDetalle3.setBounds(20, 544, 70, 25);
 		getContentPane().add(lblDetalle3);
 		
 		JLabel lblDetalle4 = new JLabel("Artista:");
 		lblDetalle4.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle4.setBounds(387, 571, 70, 25);
+		lblDetalle4.setBounds(20, 571, 70, 25);
 		getContentPane().add(lblDetalle4);
 		
 		JLabel lblDetalle5 = new JLabel("Título:");
 		lblDetalle5.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle5.setBounds(387, 626, 70, 25);
+		lblDetalle5.setBounds(20, 626, 70, 25);
 		getContentPane().add(lblDetalle5);
 		
 		JLabel lblDetalle6 = new JLabel("Descripción:");
 		lblDetalle6.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDetalle6.setBounds(387, 653, 103, 25);
+		lblDetalle6.setBounds(20, 653, 103, 25);
 		getContentPane().add(lblDetalle6);
 		
 		lblGoYoutube = new JLabel("Ir a Youtube");
@@ -264,26 +278,26 @@ public class MainFrame extends JFrame implements Observer{
 		getContentPane().add(lblGoYoutube);
 		
 		lblTitle = new JLabel("");
-		lblTitle.setBounds(503, 517, 431, 25);
+		lblTitle.setBounds(136, 517, 870, 25);
 		getContentPane().add(lblTitle);
 		
 		lblAlbum = new JLabel("");
-		lblAlbum.setBounds(503, 544, 431, 25);
+		lblAlbum.setBounds(136, 544, 870, 25);
 		getContentPane().add(lblAlbum);
 		
 		lblArtist = new JLabel("");
-		lblArtist.setBounds(503, 571, 431, 25);
+		lblArtist.setBounds(136, 571, 870, 25);
 		getContentPane().add(lblArtist);
 		
 		lblYtTitle = new JLabel("");
-		lblYtTitle.setBounds(503, 626, 431, 25);
+		lblYtTitle.setBounds(136, 626, 870, 25);
 		getContentPane().add(lblYtTitle);
 		
 		lblYtDescription = new JLabel("");
 		lblYtDescription.setVerticalAlignment(SwingConstants.TOP);
 		lblYtDescription.setVerticalTextPosition(SwingConstants.TOP);
 		lblYtDescription.setFont(new Font("Dialog", Font.PLAIN, 10));
-		lblYtDescription.setBounds(502, 653, 432, 54);
+		lblYtDescription.setBounds(136, 653, 820, 54);
 		getContentPane().add(lblYtDescription);
 		
 		btnDownload = new JButton("Descargar");
@@ -319,13 +333,6 @@ public class MainFrame extends JFrame implements Observer{
 		JMenu menuArchivo = new JMenu("Opciones");
 		menuBar.add(menuArchivo);
 
-		JMenuItem menuItemConfig = new JMenuItem("Config");
-		menuArchivo.add(menuItemConfig);
-		menuItemConfig.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
 		JMenuItem menuItemUpdate = new JMenuItem("update youtube-dl");
 		menuArchivo.add(menuItemUpdate);
 		menuItemUpdate.addActionListener(new ActionListener() {
@@ -343,6 +350,11 @@ public class MainFrame extends JFrame implements Observer{
 			
 			public void keyReleased(KeyEvent keyevent) {
 				if(keyevent.getKeyCode() == KeyEvent.VK_ENTER){
+					if(keyevent.isControlDown()){
+						rdbtnSearchMode.setSelected(rdbtnArtists.getModel(), true);
+					}else if(keyevent.isShiftDown()){
+						rdbtnSearchMode.setSelected(rdbtnAlbums.getModel(), true);
+					}
 					btnSearch.doClick();
 				}
 			}
@@ -430,6 +442,22 @@ public class MainFrame extends JFrame implements Observer{
 		});
 	}
 	
+	private void createTableClickListener(JTable table){
+		table.addMouseListener(new MouseAdapter() {
+		    public void mousePressed(MouseEvent me) {
+		        JTable table =(JTable) me.getSource();
+		        Point p = me.getPoint();
+		        int row = table.rowAtPoint(p);
+		        if (me.getClickCount() == 2) {
+		        	if(row != -1){
+		            	String downloadLog = songs.get(row).getDownloadLog();
+		            	new LogDialog(MainFrame.this, "<html>" + downloadLog + "</html>");
+		            }
+		        }
+		    }
+		});
+	}
+	
 	private void createGoYoutubeListener() {
 		lblGoYoutube.addMouseListener(new MouseListener() {
 			
@@ -449,15 +477,15 @@ public class MainFrame extends JFrame implements Observer{
 				}
 			}
 			
-			public void mouseClicked(MouseEvent e) {
+			public void mouseClicked(MouseEvent evt) {
 				if(goYoutubeEnabled){
 					int selected = table.getSelectedRow();
 					try {
 						Desktop.getDesktop().browse(new URI(songTableModel.getSongs().get(selected).getUrl()));
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					} catch (URISyntaxException e1) {
-						e1.printStackTrace();
+					} catch (IOException e) {
+						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					} catch (URISyntaxException e) {
+						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 					}
 				}
 			}
@@ -485,5 +513,33 @@ public class MainFrame extends JFrame implements Observer{
 		}
 	}
 
-	
+	public class LogDialog extends JDialog {
+		private static final long serialVersionUID = 1L;
+
+		public LogDialog(JFrame parent, String message) {
+			super(parent, "Log", true);
+			if (parent != null) {
+				Dimension parentSize = parent.getSize();
+				Point p = parent.getLocation();
+				setLocation(p.x + parentSize.width / 4, p.y + parentSize.height / 4);
+			}
+			JPanel messagePane = new JPanel();
+			messagePane.add(new JLabel(message));
+			getContentPane().add(messagePane);
+			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+			addKeyListener(new KeyAdapter() {
+
+				@Override
+				public void keyReleased(KeyEvent e) {
+					if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+						dispose();
+					} else {
+						super.keyReleased(e);
+					}
+				}
+			});
+			pack();
+			setVisible(true);
+		}
+	}
 }

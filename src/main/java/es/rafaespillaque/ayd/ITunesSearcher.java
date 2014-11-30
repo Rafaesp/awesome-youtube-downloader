@@ -2,13 +2,17 @@ package es.rafaespillaque.ayd;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -51,12 +55,12 @@ public class ITunesSearcher {
 					}
 
 					URL url = new URL(BASE_URL + builder.toString());
-					parseJSON(Utils.read(url.openConnection().getInputStream()));
+					parseJSON(Utils.read(url.openConnection(Utils.getProxy()).getInputStream()));
 
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				} catch (IOException e) {
-					e.printStackTrace();
+					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		}).start();
@@ -66,7 +70,7 @@ public class ITunesSearcher {
 		try {
 			params.put("term", URLEncoder.encode(term, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 
@@ -91,7 +95,6 @@ public class ITunesSearcher {
 	}
 
 	private void parseJSON(String json) {
-		System.out.println(json);
 		try {
 			JSONObject root = new JSONObject(json);
 			JSONArray array = root.getJSONArray("results");
@@ -110,7 +113,7 @@ public class ITunesSearcher {
 			
 			listener.onSearchFinished(songs);
 		} catch (JSONException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 
