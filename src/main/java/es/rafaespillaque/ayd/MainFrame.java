@@ -97,7 +97,7 @@ public class MainFrame extends JFrame implements Observer{
 		ConsoleHandler consoleHandler = new ConsoleHandler();
 		consoleHandler.setLevel(logLevel);
 		Logger.getGlobal().addHandler(consoleHandler);
-		if(Utils.getProp("logging.file.enabled", Boolean.FALSE)){
+		if(Utils.getProp("logging.file.enabled", Boolean.TRUE)){
 			try {
 				FileHandler fileHandler = new FileHandler("log.txt");
 				fileHandler.setFormatter(new SimpleFormatter());

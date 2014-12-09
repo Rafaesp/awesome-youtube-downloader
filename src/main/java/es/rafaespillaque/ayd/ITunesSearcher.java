@@ -55,6 +55,7 @@ public class ITunesSearcher {
 					}
 
 					URL url = new URL(BASE_URL + builder.toString());
+					Logger.getGlobal().log(Level.FINE, "Petición a ITunes a la URL: " + url.toString());
 					parseJSON(Utils.read(url.openConnection(Utils.getProxy()).getInputStream()));
 
 				} catch (MalformedURLException e) {
@@ -95,6 +96,7 @@ public class ITunesSearcher {
 	}
 
 	private void parseJSON(String json) {
+		Logger.getGlobal().log(Level.FINE, "ITunes devuelve: \n" + json);
 		try {
 			JSONObject root = new JSONObject(json);
 			JSONArray array = root.getJSONArray("results");

@@ -44,6 +44,7 @@ public class YouTubeSearcher {
 				
 				try {
 					url = new URL(BASE_URL + URLEncoder.encode(q, "UTF-8"));
+					Logger.getGlobal().log(Level.FINE, "Petición a YouTube en la URL: " + url.toString());
 					String json = Utils.read(url.openConnection(Utils.getProxy()).getInputStream());
 					parseJSON(json, song);
 				} catch (MalformedURLException e) {
@@ -57,6 +58,7 @@ public class YouTubeSearcher {
 	
 	private void parseJSON(String json, Song song){
 		try {
+			Logger.getGlobal().log(Level.FINE, "YouTube devuelve: \n" + json);
 			JSONObject root = new JSONObject(json);
 			JSONObject feed = root.getJSONObject("feed");
 			JSONArray entry = feed.getJSONArray("entry");

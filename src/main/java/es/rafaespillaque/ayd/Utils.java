@@ -19,6 +19,8 @@ public class Utils {
 
 	private static Properties props;
 	private static Proxy proxy;
+	
+	private static String path;
 
 	public static String read(InputStream is) {
 		try {
@@ -29,11 +31,13 @@ public class Utils {
 	}
 
 	public static String getCurrentPath() {
-		String path = Utils.class.getProtectionDomain().getCodeSource().getLocation().toString();
-		path = path.replace("target/classes/", ""); // Para que funcione desde
-													// Eclipse
-		path = path.replace("file:/", "");
-		path = path.replace("/", "\\");
+		if(path == null){
+			path = Utils.class.getProtectionDomain().getCodeSource().getLocation().toString();
+			path = path.replace("classes/", ""); // Para que funcione desde Eclipse
+			path = path.substring(0, path.substring(0, path.length() - 1).lastIndexOf("/")) + "/";
+			path = path.replace("file:/", "");
+			path = path.replace("/", "\\");
+		}
 		return path;
 	}
 
