@@ -66,6 +66,11 @@ public class MainFrame extends JFrame implements Observer{
 
 	private static final int WIDTH = 960;
 	private static final int HEIGHT = 760;
+	private static final Song BACK_SONG;
+	static{
+		BACK_SONG = new Song();
+		BACK_SONG.setTitle("Volver");
+	}
 
 	private JTextField txtSearch;
 	private JLabel lblTitle;
@@ -74,10 +79,13 @@ public class MainFrame extends JFrame implements Observer{
 	private JLabel lblYtTitle;
 	private JLabel lblYtDescription;
 	private JButton btnSearch;
+	private JRadioButton rdbtnAlbums;
+	private JRadioButton rdbtnArtists;
 	private JTable table;
 	private ButtonGroup rdbtnSearchMode;
 	private JLabel lblSelectedDownloadPath;
 	private JLabel lblGoYoutube;
+	private JLabel lblLog;
 	private JButton btnDownload;
 	
 	private ITunesSearcher itSearcher;
@@ -86,10 +94,7 @@ public class MainFrame extends JFrame implements Observer{
 	private File downloadPath;
 	private boolean goYoutubeEnabled = false;
 	private List<Song> songs;
-
-	private JRadioButton rdbtnAlbums;
-
-	private JRadioButton rdbtnArtists;
+	private List<Song> lastSongs;
 
 	public static void main(String[] args) {
 		Level logLevel = Level.parse(Utils.getProp("logging.level", "ALL"));
@@ -277,6 +282,12 @@ public class MainFrame extends JFrame implements Observer{
 		createGoYoutubeListener();
 		getContentPane().add(lblGoYoutube);
 		
+		lblLog = new JLabel("Log");
+		lblLog.setFont(new Font("Dialog", Font.BOLD, 12));
+		lblLog.setBounds(700, 487, 93, 25);
+		createOpenLogListener();
+		getContentPane().add(lblLog);
+		
 		lblTitle = new JLabel("");
 		lblTitle.setBounds(136, 517, 870, 25);
 		getContentPane().add(lblTitle);
@@ -411,6 +422,7 @@ public class MainFrame extends JFrame implements Observer{
 						lblYtDescription.setText(song.getYtDescription());
 						
 						lblGoYoutube.setForeground(Color.BLUE);
+						lblLog.setForeground(Color.BLUE);
 						goYoutubeEnabled = true;
 						
 						btnDownload.setEnabled(true);
@@ -422,6 +434,7 @@ public class MainFrame extends JFrame implements Observer{
 						lblYtDescription.setText("");
 						
 						lblGoYoutube.setForeground(Color.BLACK);
+						lblLog.setForeground(Color.BLACK);
 						goYoutubeEnabled = false;
 						
 						btnDownload.setEnabled(true);
@@ -433,6 +446,7 @@ public class MainFrame extends JFrame implements Observer{
 						lblYtDescription.setText("");
 						
 						lblGoYoutube.setForeground(Color.BLACK);
+						lblLog.setForeground(Color.BLACK);
 						goYoutubeEnabled = false;
 						
 						btnDownload.setEnabled(false);
@@ -450,8 +464,19 @@ public class MainFrame extends JFrame implements Observer{
 		        int row = table.rowAtPoint(p);
 		        if (me.getClickCount() == 2) {
 		        	if(row != -1){
-		            	String downloadLog = songs.get(row).getDownloadLog();
-		            	new LogDialog(MainFrame.this, "<html>" + downloadLog + "</html>");
+		        		if(lastSongs != null && row == 0){
+		        			//Volviendo desde las alternativas
+		        			songTableModel.setSongs(lastSongs);
+		        			songs = lastSongs;
+		        			lastSongs = null;
+		        		}else{
+		        			//Primera vez, Guardamos las actuales y mostramos las alternativas 
+		        			Song song = songs.get(row);
+			            	songTableModel.setSongs(song.getAlternativeSongs());
+			            	songTableModel.addSongAsFirst(BACK_SONG);
+			            	lastSongs = songs;
+			            	songs = song.getAlternativeSongs();
+		        		}
 		            }
 		        }
 		    }
@@ -487,6 +512,35 @@ public class MainFrame extends JFrame implements Observer{
 					} catch (URISyntaxException e) {
 						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 					}
+				}
+			}
+		});
+	}
+	
+	private void createOpenLogListener(){
+		lblLog.addMouseListener(new MouseListener() {
+			
+			public void mouseReleased(MouseEvent e) {
+			}
+			
+			public void mousePressed(MouseEvent e) {
+			}
+			
+			public void mouseExited(MouseEvent e) {
+				lblLog.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+			
+			public void mouseEntered(MouseEvent e) {
+				if(goYoutubeEnabled){
+					lblLog.setCursor(new Cursor(Cursor.HAND_CURSOR));
+				}
+			}
+			
+			public void mouseClicked(MouseEvent evt) {
+				if(goYoutubeEnabled){ //misma lógica
+					int selected = table.getSelectedRow();
+					String downloadLog = songs.get(selected).getDownloadLog();
+		        	new LogDialog(MainFrame.this, "<html>" + downloadLog + "</html>");
 				}
 			}
 		});

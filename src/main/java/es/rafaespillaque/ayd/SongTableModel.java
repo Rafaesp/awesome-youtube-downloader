@@ -33,6 +33,11 @@ public class SongTableModel extends AbstractTableModel {
 		songs.add(song);
 		fireTableRowsUpdated(songs.size(), songs.size());
 	}
+	
+	public void addSongAsFirst(Song song){
+		songs.add(0, song);
+		fireTableRowsUpdated(0, 0);
+	}
 
 	public int getColumnCount() {
 		return columnNames.length;

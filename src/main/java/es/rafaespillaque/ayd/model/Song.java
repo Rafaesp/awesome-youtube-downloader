@@ -1,5 +1,7 @@
 package es.rafaespillaque.ayd.model;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
 
 
@@ -12,6 +14,7 @@ public class Song extends Observable{
 	private String url = "";
 	private String downloadStatus = "";
 	private StringBuilder downloadLog = new StringBuilder();
+	private List<Song> alternativeSongs = new LinkedList<Song>();
 	
 	public String getTitle() {
 		return title;
@@ -82,6 +85,12 @@ public class Song extends Observable{
 	}
 	public String getDownloadLog() {
 		return downloadLog.toString();
+	}
+	public List<Song> getAlternativeSongs(){
+		return alternativeSongs;
+	}
+	public void addAlternativeSong(Song song){
+		alternativeSongs.add(song);
 	}
 	@Override
 	public int hashCode() {

@@ -63,18 +63,33 @@ public class YouTubeSearcher {
 			JSONObject feed = root.getJSONObject("feed");
 			JSONArray entry = feed.getJSONArray("entry");
 			
-			//TODO Recorrer el array para buscar que el autor sea discográfica
-			JSONObject video = entry.getJSONObject(0);
+			for(int i = 0; i< entry.length(); i++){
+				Song currentSong;
+				if(i == 0){
+					currentSong = song;
+				}else{
+					currentSong = new Song();
+				}
+				
+				JSONObject video = entry.getJSONObject(i);
+				
+				JSONObject prop = video.getJSONObject("title");
+				currentSong.setYtTitle(prop.getString("$t"));
+				
+				prop = video.getJSONObject("content");
+				currentSong.setYtDescription(prop.getString("$t"));
+				
+				JSONArray propLink = video.getJSONArray("link");
+				
+				currentSong.setUrl(propLink.getJSONObject(0).getString("href"));
+				
+				if(i != 0){
+					currentSong.setArtist(song.getArtist());
+					currentSong.setTitle(song.getTitle());
+					song.addAlternativeSong(currentSong);
+				}
+			}
 			
-			JSONObject prop = video.getJSONObject("title");
-			song.setYtTitle(prop.getString("$t"));
-			
-			prop = video.getJSONObject("content");
-			song.setYtDescription(prop.getString("$t"));
-			
-			JSONArray propLink = video.getJSONArray("link");
-			
-			song.setUrl(propLink.getJSONObject(0).getString("href"));
 			
 			song.notifyObservers("youtube");
 			
