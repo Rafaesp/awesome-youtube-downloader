@@ -101,27 +101,27 @@ public class MainFrame extends JFrame implements Observer{
 		LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(logLevel);
 		ConsoleHandler consoleHandler = new ConsoleHandler();
 		consoleHandler.setLevel(logLevel);
-		Logger.getGlobal().addHandler(consoleHandler);
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).addHandler(consoleHandler);
 		if(Utils.getProp("logging.file.enabled", Boolean.TRUE)){
 			try {
 				FileHandler fileHandler = new FileHandler("log.txt");
 				fileHandler.setFormatter(new SimpleFormatter());
 				fileHandler.setLevel(logLevel);
-				Logger.getGlobal().addHandler(fileHandler);
+				Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).addHandler(fileHandler);
 			} catch (IOException e) {
-				Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+				Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			}
 		}
 		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Logger.getGlobal().fine("Start");
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).fine("Start");
 					MainFrame frame = new MainFrame();
 					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					frame.setVisible(true);
 				} catch (Exception e) {
-					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		});
@@ -135,7 +135,7 @@ public class MainFrame extends JFrame implements Observer{
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
@@ -508,9 +508,9 @@ public class MainFrame extends JFrame implements Observer{
 					try {
 						Desktop.getDesktop().browse(new URI(songTableModel.getSongs().get(selected).getUrl()));
 					} catch (IOException e) {
-						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+						Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 					} catch (URISyntaxException e) {
-						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+						Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 					}
 				}
 			}
@@ -560,10 +560,12 @@ public class MainFrame extends JFrame implements Observer{
 	}
 	
 	public void update(Observable observable, Object obj) {
-		Song song = (Song)observable;
-		if(obj.equals("youtube") || obj.equals("status")){
-			int index = songTableModel.getSongs().indexOf(song);
-			songTableModel.fireTableRowsUpdated(index, index);
+		if(lastSongs == null){//Sólo si la tabla tiene la lista original actualmente
+			Song song = (Song)observable;
+			if(obj.equals("youtube") || obj.equals("status")){
+				int index = songTableModel.getSongs().indexOf(song);
+				songTableModel.fireTableRowsUpdated(index, index);
+			}
 		}
 	}
 

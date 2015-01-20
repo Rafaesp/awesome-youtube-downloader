@@ -55,13 +55,13 @@ public class ITunesSearcher {
 					}
 
 					URL url = new URL(BASE_URL + builder.toString());
-					Logger.getGlobal().log(Level.FINE, "Petición a ITunes a la URL: " + url.toString());
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.FINE, "Petición a ITunes a la URL: " + url.toString());
 					parseJSON(Utils.read(url.openConnection(Utils.getProxy()).getInputStream()));
 
 				} catch (MalformedURLException e) {
-					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				} catch (IOException e) {
-					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		}).start();
@@ -71,7 +71,7 @@ public class ITunesSearcher {
 		try {
 			params.put("term", URLEncoder.encode(term, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 
@@ -96,7 +96,7 @@ public class ITunesSearcher {
 	}
 
 	private void parseJSON(String json) {
-		Logger.getGlobal().log(Level.FINE, "ITunes devuelve: \n" + json);
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.FINE, "ITunes devuelve: \n" + json);
 		try {
 			JSONObject root = new JSONObject(json);
 			JSONArray array = root.getJSONArray("results");
@@ -115,7 +115,7 @@ public class ITunesSearcher {
 			
 			listener.onSearchFinished(songs);
 		} catch (JSONException e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 

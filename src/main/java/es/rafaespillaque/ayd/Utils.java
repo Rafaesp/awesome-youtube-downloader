@@ -1,10 +1,12 @@
 package es.rafaespillaque.ayd;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
@@ -22,9 +24,16 @@ public class Utils {
 	
 	private static String path;
 
-	public static String read(InputStream is) {
+	public static String read(InputStream is) throws IOException {
 		try {
-			return new Scanner(is).useDelimiter("\\A").next();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+			StringBuilder builder = new StringBuilder();
+			String readLine;
+
+			while ((readLine = reader.readLine()) != null) {
+			    builder.append(readLine);
+			}
+			return builder.toString();
 		} catch (NoSuchElementException e) {
 			return "";
 		}
@@ -49,10 +58,10 @@ public class Utils {
 				try {
 					props.load(new FileInputStream(file));
 				} catch (FileNotFoundException e) {
-					Logger.getGlobal().log(Level.WARNING,
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING,
 							"Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				} catch (IOException e) {
-					Logger.getGlobal().log(Level.WARNING,
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING,
 							"Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}

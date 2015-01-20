@@ -47,7 +47,7 @@ public class YouTubeDLManager implements Runnable{
 						break;
 					}
 				} catch (InterruptedException e) {
-					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		}
@@ -60,7 +60,7 @@ public class YouTubeDLManager implements Runnable{
 			String command = Utils.getCurrentPath() + "\\youtube-dl.exe " + 
 								options + " -o \"" + song.getArtist() + " - " + song.getTitle() + ".%(ext)s\" " + song.getUrl();
 			String path = "PATH=%PATH%;" + Utils.getCurrentPath() + "\\ffmpeg";
-			Logger.getGlobal().fine(command);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).fine(command);
 			final Process pr = rt.exec(command, new String[]{path});
 			new Thread(new Runnable() {
 			    public void run() {
@@ -69,12 +69,12 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = input.readLine()) != null) {
-			                Logger.getGlobal().fine(line);
+			                Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).fine(line);
 			                song.setDownloadStatus(line);
 			                song.notifyObservers("status");
 			            }
 			        } catch (IOException e) {
-			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
@@ -85,21 +85,21 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = inputErr.readLine()) != null) {
-			            	Logger.getGlobal().warning(line);
+			            	Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).warning(line);
 			                song.setDownloadStatus(line);
 			                song.notifyObservers("status");
 			            }
 			        } catch (IOException e) {
-			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
 
 			pr.waitFor();
 		} catch (IOException e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		} catch (InterruptedException e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 	
@@ -108,7 +108,7 @@ public class YouTubeDLManager implements Runnable{
 		try {
 			String command = Utils.getCurrentPath() + "\\youtube-dl.exe -U";
 			String path = "PATH=%PATH%;" + Utils.getCurrentPath() + "\\ffmpeg";
-			Logger.getGlobal().fine(command);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).fine(command);
 			final Process pr = rt.exec(command, new String[]{path});
 			new Thread(new Runnable() {
 			    public void run() {
@@ -117,10 +117,10 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = input.readLine()) != null) {
-			                Logger.getGlobal().fine(line);
+			                Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).fine(line);
 			            }
 			        } catch (IOException e) {
-			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
@@ -131,19 +131,19 @@ public class YouTubeDLManager implements Runnable{
 
 			        try {
 			            while ((line = inputErr.readLine()) != null) {
-			            	Logger.getGlobal().warning(line);
+			            	Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).warning(line);
 			            }
 			        } catch (IOException e) {
-			            Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 			        }
 			    }
 			}).start();
 
 			pr.waitFor();
 		} catch (IOException e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		} catch (InterruptedException e) {
-			Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 		}
 	}
 	

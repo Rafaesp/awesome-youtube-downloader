@@ -27,7 +27,7 @@ public class YouTubeSearcher {
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
-						Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+						Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 					}
 				}
 			}
@@ -44,13 +44,13 @@ public class YouTubeSearcher {
 				
 				try {
 					url = new URL(BASE_URL + URLEncoder.encode(q, "UTF-8"));
-					Logger.getGlobal().log(Level.FINE, "Petición a YouTube en la URL: " + url.toString());
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.FINE, "Petición a YouTube en la URL: " + url.toString());
 					String json = Utils.read(url.openConnection(Utils.getProxy()).getInputStream());
 					parseJSON(json, song);
 				} catch (MalformedURLException e) {
-					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				} catch (IOException e) {
-					Logger.getGlobal().log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
+					Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Excepción de tipo " + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
 				}
 			}
 		}).start();
@@ -58,7 +58,7 @@ public class YouTubeSearcher {
 	
 	private void parseJSON(String json, Song song){
 		try {
-			Logger.getGlobal().log(Level.FINE, "YouTube devuelve: \n" + json);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.FINE, "YouTube devuelve: \n" + json);
 			JSONObject root = new JSONObject(json);
 			JSONObject feed = root.getJSONObject("feed");
 			JSONArray entry = feed.getJSONArray("entry");
@@ -94,7 +94,7 @@ public class YouTubeSearcher {
 			song.notifyObservers("youtube");
 			
 		} catch (JSONException e) {
-			Logger.getGlobal().log(Level.WARNING, "JSONException con json: " + json, e);
+			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "JSONException con json: " + json, e);
 		}
 	}
 	
