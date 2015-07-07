@@ -16,9 +16,9 @@ import es.rafaespillaque.ayd.model.Song;
 
 public class YouTubeSearcher {
 
-	private static final String API_KEY = "AIzaSyDJmVVjIhHZmGxwjVlWBbLPrc8yM3ZLCCs";
-	private static final String BASE_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&key="+API_KEY+"&type=video&fields=items(id(videoId),snippet(title,description))&q=";
-	private static final String YOUTUBE_URL = "http://www.youtube.com/watch?v=";
+	private static final String API_KEY = Utils.getProp("youtube.api_key", "AIzaSyDJmVVjIhHZmGxwjVlWBbLPrc8yM3ZLCCs");
+	private static final String BASE_URL = Utils.getProp("youtube.search_url", "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&type=video&fields=items(id(videoId),snippet(title,description))")+"&key="+API_KEY+"&q=";
+	private static final String YOUTUBE_URL = Utils.getProp("youtube.video_url", "http://www.youtube.com/watch?v=");
 	
 	public void search(final List<Song> songs){
 		new Thread(new Runnable() {
