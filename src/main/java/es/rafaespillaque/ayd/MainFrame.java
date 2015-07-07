@@ -473,7 +473,9 @@ public class MainFrame extends JFrame implements Observer{
 		        			//Primera vez, Guardamos las actuales y mostramos las alternativas 
 		        			Song song = songs.get(row);
 			            	songTableModel.setSongs(song.getAlternativeSongs());
-			            	songTableModel.addSongAsFirst(BACK_SONG);
+			            	if(!songTableModel.getSongs().isEmpty() && songTableModel.getSongs().get(0) != BACK_SONG){
+			            		songTableModel.addSongAsFirst(BACK_SONG);
+			            	}
 			            	lastSongs = songs;
 			            	songs = song.getAlternativeSongs();
 		        		}
