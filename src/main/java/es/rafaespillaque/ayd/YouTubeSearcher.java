@@ -16,8 +16,9 @@ import es.rafaespillaque.ayd.model.Song;
 
 public class YouTubeSearcher {
 
-	private static final String BASE_URL = "http://gdata.youtube.com/feeds/api/videos?alt=json&q=";
-
+	private static final String API_KEY = "AIzaSyDJmVVjIhHZmGxwjVlWBbLPrc8yM3ZLCCs";
+	private static final String BASE_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&key="+API_KEY+"&type=video&fields=items(id(videoId),snippet(title,description))&q=";
+	private static final String YOUTUBE_URL = "http://www.youtube.com/watch?v=";
 	
 	public void search(final List<Song> songs){
 		new Thread(new Runnable() {
@@ -60,8 +61,7 @@ public class YouTubeSearcher {
 		try {
 			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.FINE, "YouTube devuelve: \n" + json);
 			JSONObject root = new JSONObject(json);
-			JSONObject feed = root.getJSONObject("feed");
-			JSONArray entry = feed.getJSONArray("entry");
+			JSONArray entry = root.getJSONArray("items");
 			
 			for(int i = 0; i< entry.length(); i++){
 				Song currentSong;
@@ -73,15 +73,12 @@ public class YouTubeSearcher {
 				
 				JSONObject video = entry.getJSONObject(i);
 				
-				JSONObject prop = video.getJSONObject("title");
-				currentSong.setYtTitle(prop.getString("$t"));
+				JSONObject prop = video.getJSONObject("id");
+				currentSong.setUrl(YOUTUBE_URL + prop.getString("videoId"));
 				
-				prop = video.getJSONObject("content");
-				currentSong.setYtDescription(prop.getString("$t"));
-				
-				JSONArray propLink = video.getJSONArray("link");
-				
-				currentSong.setUrl(propLink.getJSONObject(0).getString("href"));
+				prop = video.getJSONObject("snippet");
+				currentSong.setYtTitle(prop.getString("title"));
+				currentSong.setYtDescription(prop.getString("description"));
 				
 				if(i != 0){
 					currentSong.setArtist(song.getArtist());
