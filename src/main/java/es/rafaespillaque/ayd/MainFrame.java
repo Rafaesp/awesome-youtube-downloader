@@ -91,7 +91,7 @@ public class MainFrame extends JFrame implements Observer{
 	private ITunesSearcher itSearcher;
 	private YouTubeSearcher ytSearcher;
 	private SongTableModel songTableModel;
-	private File downloadPath;
+	private static File downloadPath;
 	private boolean goYoutubeEnabled = false;
 	private List<Song> songs;
 	private List<Song> lastSongs;
@@ -569,6 +569,10 @@ public class MainFrame extends JFrame implements Observer{
 				songTableModel.fireTableRowsUpdated(index, index);
 			}
 		}
+	}
+
+	public static File getDownloadPath() {
+		return downloadPath;
 	}
 
 	public class LogDialog extends JDialog {

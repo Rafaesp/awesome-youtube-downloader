@@ -57,8 +57,9 @@ public class YouTubeDLManager implements Runnable{
 	private void download() {
 		Runtime rt = Runtime.getRuntime();
 		try {
+			String downloadPath = MainFrame.getDownloadPath().getAbsolutePath();
 			String command = Utils.getCurrentPath() + "\\youtube-dl.exe " + 
-								options + " -o \"" + song.getArtist() + " - " + song.getTitle() + ".%(ext)s\" " + song.getUrl();
+								options + " -o "+downloadPath+"/\"" + song.getArtist() + " - " + song.getTitle() + ".%(ext)s\" " + song.getUrl();
 			String path = "PATH=%PATH%;" + Utils.getCurrentPath() + "\\ffmpeg";
 			Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).fine(command);
 			final Process pr = rt.exec(command, new String[]{path});
